@@ -246,7 +246,6 @@
             </div>
         </div>
 
-        <!-- 購物清單 UI 大升級區塊 -->
         <div v-if="currentTab === 'shopping'" class="space-y-3 animate-fade-in">
             <div v-if="shoppingList.length === 0" class="text-center text-xs text-slate-400 py-12">
                 🧺 購物清單空空如也，快點右下角「＋」加入澳洲伴手禮！
@@ -268,13 +267,13 @@
                     </div>
                 </div>
                 
-                <!-- 如果有圖片，則渲染縮圖 -->
                 <div v-if="shop.image" class="w-20 h-20 relative rounded-xl overflow-hidden border border-slate-100 shadow-sm cursor-zoom-in" @click="zoomImage(shop.image)">
                     <img :src="shop.image" alt="商品照片" class="w-full h-full object-cover">
                 </div>
             </div>
         </div>
 
+        <!-- 記帳 UI 進階優化區塊 -->
         <div v-if="currentTab === 'wallet'" class="space-y-4 animate-fade-in">
             <div class="bg-slate-900 text-white p-5 rounded-2xl text-center shadow-lg">
                 <span class="text-[10px] text-amber-300 tracking-widest font-bold">TOTAL EXPENSES</span>
@@ -291,16 +290,24 @@
             </div>
 
             <div v-for="exp in expenses" :key="exp.id" class="bg-white/90 p-3.5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] px-2 py-1 rounded bg-slate-100 font-bold text-slate-600">{{ exp.category }}</span>
-                    <div>
-                        <h4 class="text-sm font-bold text-slate-800">{{ exp.name }}</h4>
-                        <p class="text-[9px] text-slate-400">{{ exp.date }}</p>
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <span class="text-[11px] px-2 py-1 rounded bg-slate-100 font-bold text-slate-600 flex-shrink-0">
+                        {{ exp.category }}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-sm font-bold text-slate-800 truncate">{{ exp.name }}</h4>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[9px] text-slate-400 font-mono">{{ exp.date }}</span>
+                            <!-- 新增：付款方式顯示標籤 -->
+                            <span v-if="exp.paymentMethod" class="text-[9px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded font-medium">
+                                {{ exp.paymentMethod }}
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div class="text-right flex items-center gap-3">
-                    <span class="text-sm font-bold text-slate-700">$ {{ exp.amount.toLocaleString() }}</span>
-                    <button @click="deleteExpenseItem(exp.id)" class="text-slate-300 hover:text-rose-500 text-xs">✕</button>
+                <div class="text-right flex items-center gap-2.5 flex-shrink-0 ml-2">
+                    <span class="text-sm font-bold text-slate-700 font-mono">$ {{ exp.amount.toLocaleString() }}</span>
+                    <button @click="deleteExpenseItem(exp.id)" class="text-slate-300 hover:text-rose-500 text-xs px-1">✕</button>
                 </div>
             </div>
         </div>
@@ -440,11 +447,10 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button v-if="isEditMode" @click="deleteEvent" class="flex-1 bg-rose-50 text-rose-600 border border-rose-200 py-3 rounded-xl font-bold">🗑️ 刪除</button>
-                    <button @click="saveEvent" class="flex-[2] bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💾 儲存確認</button>
+                    <button @click="saveEvent" class="flex-[2] bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💾 儲弄確認</button>
                 </div>
             </div>
 
-            <!-- 購物項目可編輯、上傳照片的進階 Modal UI -->
             <div v-if="modalType === 'shopping'" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-slate-500 font-bold mb-1">🎁 商品名稱 / 備註</label>
@@ -454,11 +460,9 @@
                 <div>
                     <label class="block text-slate-500 font-bold mb-1">📸 附加參考商品照片 (選填)</label>
                     <div class="space-y-2">
-                        <!-- 檔案選擇器 -->
                         <input type="file" accept="image/*" @change="handleShoppingImageUpload" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-950 hover:file:bg-amber-100">
                         <p class="text-[10px] text-slate-400">💡 支援直接用手機相機拍照或從相簿選擇圖片</p>
                         
-                        <!-- 預覽縮圖 -->
                         <div v-if="modalData.image" class="relative w-24 h-24 rounded-xl overflow-hidden border mt-2 group">
                             <img :src="modalData.image" class="w-full h-full object-cover">
                             <button @click="modalData.image = ''" class="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-[10px]">✕</button>
@@ -471,15 +475,45 @@
                 </button>
             </div>
 
-            <div v-if="modalType === 'wallet'" class="space-y-3 text-sm">
-                <input type="text" v-model="modalData.name" placeholder="花費項目" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                <input type="number" v-model.number="modalData.amount" placeholder="金額 (AUD)" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                <button @click="saveExpenseItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💰 儲存記帳</button>
+            <!-- 記帳 Modal 升級：增加類別與付款方式選單 -->
+            <div v-if="modalType === 'wallet'" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block text-slate-500 font-bold mb-1">✏️ 花費項目名稱</label>
+                    <input type="text" v-model="modalData.name" placeholder="例如：藥局買維他命、晚餐吃牛排" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">🏷️ 消費種類</label>
+                        <select v-model="modalData.category" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold text-sm">
+                            <option>🍔 飲食</option>
+                            <option>🛍️ 購物</option>
+                            <option>🎫 門票</option>
+                            <option>🚌 交通</option>
+                            <option>🏨 住宿</option>
+                            <option>🎯 娛樂</option>
+                            <option>📦 其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">💳 付款方式</label>
+                        <select v-model="modalData.paymentMethod" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold text-sm">
+                            <option>💳 信用卡</option>
+                            <option>💵 現金</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-500 font-bold mb-1">💰 金額 (AUD 澳幣)</label>
+                    <input type="number" v-model.number="modalData.amount" placeholder="輸入金額" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold font-mono text-sm">
+                </div>
+
+                <button @click="saveExpenseItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md text-sm mt-1">💰 儲存記帳項目</button>
             </div>
         </div>
     </div>
 
-    <!-- 全螢幕圖片放大檢視燈箱 (Lightbox) -->
     <div v-if="zoomedImageSrc" class="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4 animate-fade-in" @click="zoomedImageSrc = null">
         <div class="absolute top-6 right-6 text-white text-2xl font-black cursor-pointer bg-black/40 w-10 h-10 rounded-full flex items-center justify-center select-none">✕</div>
         <img :src="zoomedImageSrc" alt="放大圖片檢視" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-all cursor-zoom-out">
@@ -510,8 +544,6 @@ createApp({
         const isSynced = ref(false);
         let supabaseClient = null;
         const weatherDatabase = ref({});
-        
-        // 全螢幕圖片放大專用變數
         const zoomedImageSrc = ref(null);
 
         const days = ref([
@@ -830,35 +862,26 @@ createApp({
                 modalType.value = 'shopping'; isEditMode.value = false;
                 modalData.value = { name: '', image: '' };
             } else if (currentTab.value === 'wallet') {
-                modalType.value = 'wallet'; modalData.value = { category: '飲食', name: '', amount: null, date: days.value[selectedDay.value].dateStr };
+                // 記帳預設加入：類別預設為第一個「🍔 飲食」，付款方式預設為「💳 信用卡」
+                modalType.value = 'wallet'; modalData.value = { category: '🍔 飲食', paymentMethod: '💳 信用卡', name: '', amount: null, date: days.value[selectedDay.value].dateStr };
             }
             showModal.value = true;
         };
 
-        // 購物清單高階操作：打開編輯視窗
         const openEditShoppingModal = (shopObj) => {
             modalType.value = 'shopping'; isEditMode.value = true; currentTargetEventId = shopObj.id;
             modalData.value = { ...shopObj }; showModal.value = true;
         };
 
-        // 處理照片選取並轉成內嵌 Base64 編碼
         const handleShoppingImageUpload = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
-            // 限制一下圖片大小，避免過大（壓到約 800px 以內最佳，這裡做基礎編碼讀取）
             const reader = new FileReader();
-            reader.onload = (event) => {
-                modalData.value.image = event.target.result; // 將圖片 Base64 文字存入 modalData
-            };
+            reader.onload = (event) => { modalData.value.image = event.target.result; };
             reader.readAsDataURL(file);
         };
 
-        // 全螢幕放大檢視控制
-        const zoomImage = (imgSrc) => {
-            zoomedImageSrc.value = imgSrc;
-        };
-
+        const zoomImage = (imgSrc) => { zoomedImageSrc.value = imgSrc; };
         const openModal = (type, dataObj) => { modalType.value = type; isEditMode.value = true; currentTargetEventId = dataObj.id; modalData.value = { ...dataObj }; showModal.value = true; };
         const closeModal = () => { showModal.value = false; };
 
@@ -877,10 +900,8 @@ createApp({
 
         const deleteEvent = () => { events.value = events.value.filter(e => e.id !== currentTargetEventId); updateCloud(); closeModal(); };
         
-        // 升級優化後的儲存購物項
         const saveShoppingItem = () => { 
             if (!modalData.value.name) { alert('請輸入商品名稱！'); return; }
-            
             if (isEditMode.value) {
                 const idx = shoppingList.value.findIndex(s => s.id === currentTargetEventId);
                 if (idx !== -1) {
@@ -888,18 +909,27 @@ createApp({
                     shoppingList.value[idx].image = modalData.value.image || '';
                 }
             } else {
-                shoppingList.value.push({ 
-                    id: Date.now(), 
-                    name: modalData.value.name, 
-                    checked: false,
-                    image: modalData.value.image || ''
-                }); 
+                shoppingList.value.push({ id: Date.now(), name: modalData.value.name, checked: false, image: modalData.value.image || '' }); 
             }
             updateCloud(); closeModal(); 
         };
 
         const deleteShoppingItem = (id) => { if(confirm("確定要刪除此購物項目嗎？")) { shoppingList.value = shoppingList.value.filter(s => s.id !== id); updateCloud(); } };
-        const saveExpenseItem = () => { if (!modalData.value.name || !modalData.value.amount) return; expenses.value.push({ id: Date.now(), category: modalData.value.category, name: modalData.value.name, amount: modalData.value.amount, date: modalData.value.date }); updateCloud(); closeModal(); };
+        
+        // 升級版記帳儲存：將帶有 Emoji 的消費類別與付款方式寫入結構
+        const saveExpenseItem = () => { 
+            if (!modalData.value.name || !modalData.value.amount) { alert('請填寫項目與金額！'); return; } 
+            expenses.value.push({ 
+                id: Date.now(), 
+                category: modalData.value.category || '📦 其他', 
+                paymentMethod: modalData.value.paymentMethod || '💳 信用卡',
+                name: modalData.value.name, 
+                amount: modalData.value.amount, 
+                date: modalData.value.date 
+            }); 
+            updateCloud(); closeModal(); 
+        };
+        
         const deleteExpenseItem = (id) => { expenses.value = expenses.value.filter(e => e.id !== id); updateCloud(); };
 
         onMounted(() => { 
