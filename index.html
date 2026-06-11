@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>澳洲多城私旅 - 15天自由主題版</title>
+    <title>澳洲多城私旅 - 智能動態天數版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -106,8 +106,7 @@
                 </div>
             </div>
 
-            <!-- 自自由編輯主題區塊 -->
-            <div class="bg-amber-900/90 p-3 rounded-xl border border-amber-800 shadow-sm flex justify-between items-center px-4 backdrop-blur-sm">
+            <div class="bg-amber-900/90 p-3 rounded-xl border border-amber-800 text-center shadow-sm flex justify-between items-center px-4 backdrop-blur-sm">
                 <span class="text-xs text-amber-100 font-medium flex-1 text-center">✨ 今日主題：{{ days[selectedDay]?.title || '未設定主題' }} ✨</span>
                 <button @click="editDayTitle" class="text-[10px] text-amber-300 underline font-bold ml-2">編輯主題/城市</button>
             </div>
@@ -181,6 +180,10 @@
                     <button @click="openAddHotelModal" class="text-xs bg-amber-600 text-white px-2 py-1 rounded-md font-bold hover:bg-amber-700 transition">＋ 新增住宿</button>
                 </div>
 
+                <div v-if="hotelList.length === 0" class="text-center text-xs text-slate-400 py-6">
+                    🛏️ 目前尚無住宿紀錄，快點擊上方按鈕補上飯店確認信資料！
+                </div>
+
                 <div v-for="hotel in hotelList" :key="hotel.id" class="p-3 bg-amber-50/60 rounded-xl border border-amber-100/80 relative space-y-1.5 text-xs">
                     <div class="flex justify-between items-start">
                         <div>
@@ -205,6 +208,7 @@
                             📍 <strong>地址:</strong> {{ hotel.address }}
                             <button @click="copyText(hotel.address)" class="text-[10px] bg-slate-200 px-1 py-0.5 rounded text-slate-600">複製</button>
                         </p>
+                        <p v-if="hotel.phone">📞 <strong>電話:</strong> {{ hotel.phone }}</p>
                     </div>
 
                     <div class="flex justify-between items-center bg-slate-100 p-1.5 rounded-md mt-1">
@@ -215,11 +219,23 @@
                             價格: {{ hotel.price }}
                         </span>
                     </div>
+
+                    <p v-if="hotel.note" class="text-[11px] text-slate-500 bg-white p-1.5 rounded border border-dashed border-slate-200 whitespace-pre-line">💡 備註: {{ hotel.note }}</p>
+                    
+                    <button @click="triggerGoogleMap(hotel.name + ' ' + hotel.city)" class="w-full mt-1.5 py-1 bg-amber-950/10 hover:bg-amber-950/20 text-amber-950 font-bold text-[11px] rounded-md transition">🗺️ 開啟 Google 地圖查看位置</button>
+                </div>
+            </div>
+
+            <!-- 澳洲緊急求助 -->
+            <div class="bg-rose-50 p-4 rounded-2xl border border-rose-200">
+                <h3 class="text-sm font-bold text-rose-900 mb-2">🚨 澳洲緊急求助（重要）</h3>
+                <div class="bg-white p-3 rounded-xl text-center shadow-sm border border-rose-100">
+                    <span class="text-rose-600 text-2xl font-black">000</span>
+                    <p class="text-xs text-slate-600 mt-1 font-bold">澳洲全境統一緊急救助熱線 (警察 / 救護車 / 消防局)</p>
                 </div>
             </div>
         </div>
 
-        <!-- 購物清單分頁 -->
         <div v-if="currentTab === 'shopping'" class="space-y-3 animate-fade-in">
             <div v-if="shoppingList.length === 0" class="text-center text-xs text-slate-400 py-12">
                 🧺 購物清單空空如也，快點右下角「＋」加入澳洲伴手禮！
@@ -229,13 +245,15 @@
                     <button @click="shop.checked = !shop.checked; updateCloud();" class="text-xl focus:outline-none">
                         {{ shop.checked ? '⭐' : '☆' }}
                     </button>
+                    <div v-if="shop.image" class="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex-shrink-0">
+                        <img :src="shop.image" class="w-full h-full object-cover">
+                    </div>
                     <span class="font-bold text-sm" :class="shop.checked ? 'line-through text-slate-400' : 'text-slate-700'">{{ shop.name }}</span>
                 </div>
                 <button @click="deleteShoppingItem(shop.id)" class="text-slate-300 hover:text-rose-500 text-xs px-2 py-1">✕</button>
             </div>
         </div>
 
-        <!-- 記帳錢包分頁 -->
         <div v-if="currentTab === 'wallet'" class="space-y-4 animate-fade-in">
             <div class="bg-slate-900 text-white p-5 rounded-2xl text-center shadow-lg">
                 <span class="text-[10px] text-amber-300 tracking-widest font-bold">TOTAL EXPENSES</span>
@@ -251,6 +269,10 @@
                 </div>
             </div>
 
+            <div v-if="expenses.length === 0" class="text-center text-xs text-slate-400 py-8">
+                💰 目前還沒有記帳紀錄喔！
+            </div>
+            
             <div v-for="exp in expenses" :key="exp.id" class="bg-white/90 p-3.5 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <span class="text-[10px] px-2 py-1 rounded bg-slate-100 font-bold text-slate-600">{{ exp.category }}</span>
@@ -268,7 +290,6 @@
 
     </main>
 
-    <!-- 浮動新增按鈕 -->
     <button v-if="currentTab !== 'info'" @click="triggerFAB" class="fixed bottom-24 right-6 w-14 h-14 bg-amber-950 text-amber-100 rounded-full text-3xl shadow-2xl flex items-center justify-center z-50 focus:outline-none hover:scale-105 transition-all">＋</button>
 
     <!-- 智慧控制中心彈窗 -->
@@ -282,12 +303,62 @@
             <!-- 住宿專屬新增與編輯表單 -->
             <div v-if="modalType === 'hotel'" class="space-y-3 text-xs">
                 <div class="grid grid-cols-3 gap-2">
-                    <div><label class="block text-slate-500 font-bold mb-1">城市</label><input type="text" v-model="modalData.city" class="w-full p-2 bg-slate-50 border rounded-xl font-bold"></div>
-                    <div class="col-span-2"><label class="block text-slate-500 font-bold mb-1">飯店名稱</label><input type="text" v-model="modalData.name" class="w-full p-2 bg-slate-50 border rounded-xl font-bold"></div>
+                    <div class="col-span-1">
+                        <label class="block text-slate-500 font-bold mb-1">城市/分站</label>
+                        <input type="text" v-model="modalData.city" placeholder="例: 悉尼" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-slate-500 font-bold mb-1">飯店/民宿名稱</label>
+                        <input type="text" v-model="modalData.name" placeholder="酒店全名" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block text-slate-500 font-bold mb-1">入住日期</label><input type="date" v-model="modalData.checkIn" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
-                    <div><label class="block text-slate-500 font-bold mb-1">退房日期</label><input type="date" v-model="modalData.checkOut" class="w-full p-2 bg-slate-50 border rounded-xl"></div>
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">入住日期 (Check-In)</label>
+                        <input type="date" v-model="modalData.checkIn" class="w-full p-2 bg-slate-50 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">退房日期 (Check-Out)</label>
+                        <input type="date" v-model="modalData.checkOut" class="w-full p-2 bg-slate-50 border rounded-xl">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">房型摘要</label>
+                        <input type="text" v-model="modalData.roomType" placeholder="例: 禁菸雙人房" class="w-full p-2 bg-slate-50 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">訂單確認碼 (Booking Ref)</label>
+                        <input type="text" v-model="modalData.bookingRef" placeholder="例: #9831A" class="w-full p-2 bg-slate-50 border rounded-xl font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-500 font-bold mb-1">飯店詳細地址</label>
+                    <input type="text" v-model="modalData.address" placeholder="方便快速複製導航的完整地址" class="w-full p-2 bg-slate-50 border rounded-xl">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">飯店聯絡電話</label>
+                        <input type="text" v-model="modalData.phone" class="w-full p-2 bg-slate-50 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 font-bold mb-1">付款狀態欄位</label>
+                        <select v-model="modalData.payStatus" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+                            <option>已線上付清</option>
+                            <option>到店付款 (現場刷卡/現金)</option>
+                            <option>已付部分訂金/到店付尾款</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="col-span-2">
+                        <label class="block text-slate-500 font-bold mb-1">價格/記帳明細</label>
+                        <input type="text" v-model="modalData.price" placeholder="標明幣別以方便對帳" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-500 font-bold mb-1">重要入住重要備註項目</label>
+                    <textarea rows="2" v-model="modalData.note" placeholder="例：含早餐、可寄放行李" class="w-full p-2 bg-slate-50 border rounded-xl"></textarea>
                 </div>
                 <button @click="saveHotelItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💾 儲存住宿設定</button>
             </div>
@@ -297,24 +368,25 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">設定旅程第一天 (首日出發日期)</label>
                     <input type="date" v-model="tripStartDate" @change="recalculateDates" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold text-center">
+                    <p class="text-[11px] text-amber-700 mt-1">💡 全案各日期的天數與星期將依照此設定自動向後遞增。</p>
                 </div>
                 <button @click="closeModal" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">套用並關閉</button>
             </div>
 
-            <!-- 編輯單日主題與對應天氣城市（自由修改並儲存） -->
+            <!-- 編輯單日主題與對應天氣城市 -->
             <div v-if="modalType === 'dayTitleEdit'" class="space-y-3 text-sm">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">編輯 Day {{ selectedDay + 1 }} 的今日主題文字</label>
-                    <input type="text" v-model="days[selectedDay].title" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold mb-3" placeholder="請輸入今天的主題...">
+                    <label class="block text-xs font-bold text-slate-500 mb-1">編輯 Day {{ selectedDay + 1 }} 的今日主題</label>
+                    <input type="text" v-model="days[selectedDay].title" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold mb-3">
                     
-                    <label class="block text-xs font-bold text-slate-500 mb-1">🎯 當天定位城市 (影響天氣預報)</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">🎯 當天定位城市 (影響天氣預報抓取地點)</label>
                     <select v-model="days[selectedDay].city" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
                         <option value="sydney">雪梨 / 悉尼 (Sydney)</option>
                         <option value="uluru">烏魯魯 (Uluru / Ayers Rock)</option>
                         <option value="melbourne">墨爾本 (Melbourne)</option>
                     </select>
                 </div>
-                <button @click="updateCloud(); fetchAustraliaWeather(); closeModal();" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💾 儲存並同步修改</button>
+                <button @click="updateCloud(); fetchAustraliaWeather(); closeModal();" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">儲存設定</button>
             </div>
 
             <!-- 行程項目模式 -->
@@ -337,7 +409,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">地點 / 項目名稱</label>
-                    <input type="text" v-model="modalData.location" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                    <input type="text" v-model="modalData.location" placeholder="例如：YEHS Hotel Sydney QVB" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
                 </div>
 
                 <div class="p-3 bg-amber-50 rounded-xl space-y-2 border border-amber-100" v-if="modalData.category === '航班'">
@@ -352,6 +424,10 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-3" v-if="modalData.category !== '航班'">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">營業時間</label><input type="text" v-model="modalData.openTime" class="w-full p-2.5 bg-slate-50 border rounded-xl"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">門票費用 (AUD)</label><input type="text" v-model="modalData.ticketPrice" class="w-full p-2.5 bg-slate-50 border rounded-xl"></div>
+                </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">備註 / 隨手記</label>
                     <textarea rows="3" v-model="modalData.note" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs"></textarea>
@@ -362,23 +438,47 @@
                 </div>
             </div>
 
-            <!-- 購物與記帳表單略過以精簡空間 -->
+            <!-- 購物採購模式 -->
             <div v-if="modalType === 'shopping'" class="space-y-3 text-sm">
-                <input type="text" v-model="modalData.name" placeholder="商品名稱" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                <button @click="saveShoppingItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">🧺 加入購物清單</button>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">商品名稱</label>
+                    <input type="text" v-model="modalData.name" placeholder="例如：澳洲萬用木瓜膏" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">上傳商品相片 (可選)</label>
+                    <input type="file" accept="image/*" @change="handleImageUpload" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-amber-50 file:text-amber-900 hover:file:bg-amber-100">
+                </div>
+                <button @click="saveShoppingItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold mt-2 shadow-md">🧺 加入購物清單</button>
             </div>
 
+            <!-- 消費記帳模式 -->
             <div v-if="modalType === 'wallet'" class="space-y-3 text-sm">
-                <input type="text" v-model="modalData.name" placeholder="花費項目" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                <input type="number" v-model.number="modalData.amount" placeholder="金額 (AUD)" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
-                <button @click="saveExpenseItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💰 儲存記帳</button>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">花費類別</label>
+                    <select v-model="modalData.category" class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                        <option>飲食</option><option>購物</option><option>交通</option><option>門票</option><option>其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">項目名稱</label>
+                    <input type="text" v-model="modalData.name" placeholder="例如：岩石區牛排晚餐" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">金額 (澳幣 AUD)</label>
+                    <input type="number" v-model.number="modalData.amount" placeholder="$ 數字金額" class="w-full p-2.5 bg-slate-50 border rounded-xl font-mono font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">消費日期</label>
+                    <input type="date" v-model="modalData.date" class="w-full p-2.5 bg-slate-50 border rounded-xl">
+                </div>
+                <button @click="saveExpenseItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold mt-2 shadow-md">💰 儲存此筆消費</button>
             </div>
         </div>
     </div>
 
     <!-- 底部導覽列 -->
     <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 flex justify-around py-3 px-2">
-        <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" :class="currentTab === tab.id ? 'text-amber-900 font-bold' : 'text-slate-400'" class="flex flex-col items-center flex-1">
+        <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" :class="currentTab === tab.id ? 'text-amber-900 font-bold' : 'text-slate-400'" class="flex flex-col items-center flex-1 focus:outline-none">
             <span class="text-xl">{{ tab.icon }}</span><span class="text-[10px] mt-1">{{ tab.name }}</span>
         </button>
     </nav>
@@ -386,7 +486,7 @@
 </div>
 
 <script>
-const { createApp, ref, computed, onMounted, watch } = Vue;
+const { createApp, ref, computed, onMounted, nextTick, watch } = Vue;
 
 const SUPABASE_URL = "https://vumrenvgdbjeaiuvnuzx.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1bXJlbnZnZGJqZWFpdXZudXp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTI4NDcsImV4cCI6MjA5NjYyODg0N30.Rn_WmoNaz1-PfHDznfJY0g_UU-kWs3UR4Wd5e2SchEo";
@@ -398,12 +498,15 @@ createApp({
         const selectedDay = ref(0);
         const exchangeRate = ref(5.15); 
         const calcInputAUD = ref(null);
+        
+        // 配合 image_48b86a.png：11/01 為入住悉尼第一天
         const tripStartDate = ref("2026-11-01"); 
+        
         const isSynced = ref(false);
         let supabaseClient = null;
         const weatherDatabase = ref({});
 
-        // 擴充至完整的 15 天數據，並且每一個物件的 title 都能夠雙向綁定修改並上傳
+        // 根據酒店與出發表重新編排 10 天的基礎架構與精準定位
         const days = ref([
             { weekShort:'Sun', dateNum:'11/01', title:'抵達悉尼與 YEHS Hotel 入住', dateStr: '2026-11-01', city: 'sydney' },
             { weekShort:'Mon', dateNum:'11/02', title:'悉尼市區與 QVB 購物探索', dateStr: '2026-11-02', city: 'sydney' },
@@ -414,12 +517,7 @@ createApp({
             { weekShort:'Sat', dateNum:'11/07', title:'原野星光展與沙漠星空晚宴', dateStr: '2026-11-07', city: 'uluru' },
             { weekShort:'Sun', dateNum:'11/08', title:'飛往墨爾本與市區微醺之夜', dateStr: '2026-11-08', city: 'melbourne' },
             { weekShort:'Mon', dateNum:'11/09', title:'前往 Balgowine Estate 莊園享受', dateStr: '2026-11-09', city: 'melbourne' },
-            { weekShort:'Tue', dateNum:'11/10', title:'墨爾本咖啡巷弄散策與城市深度遊', dateStr: '2026-11-10', city: 'melbourne' },
-            { weekShort:'Wed', dateNum:'11/11', title:'大洋路一日遊探訪十二門徒石', dateStr: '2026-11-11', city: 'melbourne' },
-            { weekShort:'Thu', dateNum:'11/12', title:'菲利普島神仙企鵝歸巢奇觀', dateStr: '2026-11-12', city: 'melbourne' },
-            { weekShort:'Fri', dateNum:'11/13', title:'維多利亞州國立美術館與市區血拼', dateStr: '2026-11-13', city: 'melbourne' },
-            { weekShort:'Sat', dateNum:'11/14', title:'普芬比利蒸汽火車與酒莊補購 / 晚間前往機場', dateStr: '2026-11-14', city: 'melbourne' },
-            { weekShort:'Sun', dateNum:'11/15', title:'凌晨搭機平安返港', dateStr: '2026-11-15', city: 'melbourne' }
+            { weekShort:'Tue', dateNum:'11/10', title:'墨爾本咖啡巷弄散策與回程準備', dateStr: '2026-11-10', city: 'melbourne' }
         ]);
 
         const tabs = [
@@ -427,7 +525,7 @@ createApp({
             {id:'shopping', name:'購物清單', icon:'🧺'}, {id:'wallet', name:'花費紀錄', icon:'💰'}
         ];
         
-        // 配合 15 天新架構，將回港航班精準移至最後一天 Day 15 (dayIdx = 14)
+        // 根據表格精準更新航班資訊與對應天數位置 (dayIdx 從 0 開始算 Day 1)
         const defaultEvents = [
             { id: 1, dayIdx: 0, category: '航班', location: '悉尼機場 (SYD) 抵達', time: '07:15', flightNum: 'CX111', flightDep: 'HKG', flightArr: 'SYD', flightArrTime: '07:15', flightDuration: '國泰航空 (10/31 19:05起飛)', note: '抵達澳洲悉尼\n辦理電子簽證與入境提取行李。', transTime: '35', transMode: 'transit' },
             { id: 2, dayIdx: 0, category: '住宿', location: 'YEHS Hotel Sydney QVB', time: '15:00', note: '辦理酒店 Check-in 入住手續 (11/1 - 11/4 共3晚)', transTime: '10', transMode: 'walk' },
@@ -436,14 +534,15 @@ createApp({
             { id: 5, dayIdx: 7, category: '航班', location: '烏魯魯 ✈️ 墨爾本', time: '09:25', flightNum: 'JQ665', flightDep: 'AYR', flightArr: 'MEL', flightArrTime: '13:35', flightDuration: '捷星航空', note: '從小沙漠飛往文化之都墨爾本。', transTime: '40', transMode: 'transit' },
             { id: 6, dayIdx: 7, category: '住宿', location: 'TEST Hotel Melbourne', time: '15:00', note: '辦理墨爾本第一晚飯店入住手續 (11/8 - 11/9)', transTime: '20', transMode: 'transit' },
             { id: 7, dayIdx: 8, category: '住宿', location: 'Balgowine Estate', time: '14:00', note: '移動至亞拉河谷 Balgowine Estate 莊園度假飯店入住 (11/9 - 11/10)', transTime: '60', transMode: 'drive' },
-            { id: 8, dayIdx: 14, category: '航班', location: '回港航班 (CX178) 啟航', time: '00:45', flightNum: 'CX178', flightDep: 'MEL', flightArr: 'HKG', flightArrTime: '06:45', flightDuration: '國泰航空直飛', note: '注意！航班是在 15 號凌晨 00:45 起飛，請務必於 14 號 (週六) 晚間提早抵達墨爾本機場辦理退稅與登機！', transTime: '45', transMode: 'transit' }
+            { id: 8, dayIdx: 9, category: '航班', location: '回港航班提醒 (11/15 凌晨機)', time: '23:00', flightNum: 'CX178', flightDep: 'MEL', flightArr: 'HKG', flightArrTime: '06:45', flightDuration: '11/15 00:45 起飛', note: '注意！回程航班為 11/15 00:45，需提前於 11/14 晚間抵達機場辦理登機。', transTime: '45', transMode: 'transit' }
         ];
 
+        // 根據表格精準更新多城市住宿清單
         const defaultHotels = [
-            { id: 1, city: "sydney", name: "YEHS Hotel Sydney QVB", checkIn: "2026-11-01", checkOut: "2026-11-04", roomType: "標準房型", bookingRef: "請補上資料", address: "147 York St, Sydney NSW 2000", payStatus: "已線上付清", price: "", note: "" },
-            { id: 2, city: "uluru", name: "The Lost Camel Hotel", checkIn: "2026-11-04", checkOut: "2026-11-08", roomType: "標準雙人房", bookingRef: "請補上資料", address: "Yulara Drive, Yulara NT 0872", payStatus: "已線上付清", price: "", note: "" },
-            { id: 3, city: "melbourne", name: "TEST Hotel Melbourne", checkIn: "2026-11-08", checkOut: "2026-11-09", roomType: "市區客房", bookingRef: "請補上資料", address: "Melbourne VIC 3000", payStatus: "已線上付清", price: "", note: "" },
-            { id: 4, city: "melbourne", name: "Balgowine Estate", checkIn: "2026-11-09", checkOut: "2026-11-10", roomType: "酒莊豪華度假房", bookingRef: "請補上資料", address: "1309 Melba Hwy, Yarra Glen VIC 3775", payStatus: "已線上付清", price: "", note: "" }
+            { id: 1, city: "sydney", name: "YEHS Hotel Sydney QVB", checkIn: "2026-11-01", checkOut: "2026-11-04", roomType: "標準房型", bookingRef: "請補上資料", address: "147 York St, Sydney NSW 2000", phone: "", payStatus: "已線上付清", price: "", note: "靠近 QVB 維多利亞女王大廈，市中心核心位置。" },
+            { id: 2, city: "uluru", name: "The Lost Camel Hotel", checkIn: "2026-11-04", checkOut: "2026-11-08", roomType: "標準雙人房", bookingRef: "請補上資料", address: "Yulara Drive, Yulara NT 0872", phone: "", payStatus: "已線上付清", price: "", note: "艾爾斯岩度假村內，具備獨特精品風格的住宿。" },
+            { id: 3, city: "melbourne", name: "TEST Hotel Melbourne", checkIn: "2026-11-08", checkOut: "2026-11-09", roomType: "市區客房", bookingRef: "請補上資料", address: "Melbourne VIC 3000", phone: "", payStatus: "已線上付清", price: "", note: "墨爾本市區中轉一晚短住。" },
+            { id: 4, city: "melbourne", name: "Balgowine Estate", checkIn: "2026-11-09", checkOut: "2026-11-10", roomType: "酒莊豪華度假房", bookingRef: "請補上資料", address: "1309 Melba Hwy, Yarra Glen VIC 3775", phone: "", payStatus: "已線上付清", price: "", note: "亞拉河谷知名酒莊度假村，享受葡萄園美景。" }
         ];
 
         const events = ref([...defaultEvents]);
@@ -464,7 +563,7 @@ createApp({
 
         const openAddHotelModal = () => {
             modalType.value = 'hotel'; isEditMode.value = false;
-            modalData.value = { city: '', name: '', checkIn: '', checkOut: '', roomType: '', bookingRef: '', address: '', payStatus: '已線上付清', price: '', note: '' };
+            modalData.value = { city: '', name: '', checkIn: '', checkOut: '', roomType: '', bookingRef: '', address: '', phone: '', payStatus: '已線上付清', price: '', note: '' };
             showModal.value = true;
         };
 
@@ -485,8 +584,15 @@ createApp({
             updateCloud(); closeModal();
         };
 
-        const deleteHotelItem = (id) => { if (confirm("確定要刪除這筆住宿嗎？")) { hotelList.value = hotelList.value.filter(h => h.id !== id); updateCloud(); } };
-        const copyText = (text) => { navigator.clipboard.writeText(text); alert("📋 地址已成功複製至剪貼簿！"); };
+        const deleteHotelItem = (id) => {
+            if (confirm("確定要刪除這筆住宿明細資料嗎？")) {
+                hotelList.value = hotelList.value.filter(h => h.id !== id); updateCloud();
+            }
+        };
+
+        const copyText = (text) => {
+            navigator.clipboard.writeText(text); alert("📋 地址已成功複製至剪貼簿！");
+        };
 
         const addNewDay = () => {
             const currentLength = days.value.length;
@@ -501,15 +607,15 @@ createApp({
             const weeks = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             const weekShort = weeks[lastDayDate.getDay()];
             const dateNum = `${month}/${date}`;
-            const lastCity = days.value[currentLength - 1].city || 'melbourne';
+            const lastCity = days.value[currentLength - 1].city || 'sydney';
 
-            days.value.push({ weekShort, dateNum, title: '自訂精采行程主題', dateStr, city: lastCity });
+            days.value.push({ weekShort, dateNum, title: '全新規劃的一天', dateStr, city: lastCity });
             selectedDay.value = currentLength; 
             updateCloud(); fetchAustraliaWeather();
         };
 
         const removeLastDay = () => {
-            if (days.value.length <= 1) return;
+            if (days.value.length <= 1) { alert("旅程至少需要保留 1 天喔！"); return; }
             if (confirm(`確定要刪除最後一天 (Day ${days.value.length}) 嗎？`)) {
                 days.value.pop();
                 if (selectedDay.value >= days.value.length) selectedDay.value = days.value.length - 1;
@@ -533,6 +639,7 @@ createApp({
             updateCloud(); fetchAustraliaWeather();
         };
 
+        // 依據 days 結構內指定的 city 精準抓取天氣
         const fetchAustraliaWeather = async () => {
             try {
                 const currentDayObj = days.value[selectedDay.value];
@@ -540,11 +647,16 @@ createApp({
 
                 let lat = -33.8688; let lon = 151.2093; 
                 const targetCity = currentDayObj.city || 'sydney';
-                if (targetCity === 'melbourne') { lat = -37.8136; lon = 144.9631; } 
-                else if (targetCity === 'uluru') { lat = -25.3444; lon = 131.0369; }
+                
+                if (targetCity === 'melbourne') {
+                    lat = -37.8136; lon = 144.9631; 
+                } else if (targetCity === 'uluru') {
+                    lat = -25.3444; lon = 131.0369; 
+                }
 
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Australia%2FSydney`);
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Australia%2FSydney`);
                 const data = await res.json();
+                
                 if (data && data.daily) {
                     const db = {};
                     data.daily.time.forEach((dateStr, index) => {
@@ -560,17 +672,25 @@ createApp({
                     });
                     weatherDatabase.value = db;
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error("天氣同步失敗", err); }
         };
 
+        // 氣候顯示降級預測機制（11月份歷史平均）
         const activeWeather = computed(() => {
             const targetDayObj = days.value[selectedDay.value];
             if (!targetDayObj) return { typeTitle: '⏳ 載入中', badgeClass: 'bg-slate-400', icon: '⏳', desc: '準備中...', tempInfo: '--°C', pop: null };
+            
             if (weatherDatabase.value && weatherDatabase.value[targetDayObj.dateStr]) return weatherDatabase.value[targetDayObj.dateStr];
+            
             const targetCity = targetDayObj.city || 'sydney';
-            if (targetCity === 'melbourne') return { typeTitle: '🌿 墨爾本 11月氣候預測', badgeClass: 'bg-emerald-600', icon: '🎨', desc: '墨爾本春末溫差大，一日四季，建議攜帶輕便外套隨時洋蔥式穿搭。', tempInfo: '11°C ~ 22°C', pop: 25 };
-            if (targetCity === 'uluru') return { typeTitle: '🏜️ 烏魯魯 11月氣候預測', badgeClass: 'bg-amber-700', icon: '☀️', desc: '內陸紅土中心已進入初夏，白天強烈紫外線，請做好防曬！', tempInfo: '21°C ~ 34°C', pop: 10 };
-            return { typeTitle: '🌿 悉尼 11月氣候預測', badgeClass: 'bg-sky-600', icon: '🦘', desc: '雪梨正值春暖花開、氣候極為溫和舒適，非常適合漫步海港！', tempInfo: '16°C ~ 24°C', pop: 20 };
+            
+            if (targetCity === 'melbourne') {
+                return { typeTitle: '🌿 墨爾本 11月氣候預測', badgeClass: 'bg-emerald-600', icon: '🎨', desc: '墨爾本春末溫差大，一日四季，建議攜帶輕便外套隨時洋蔥式穿搭。', tempInfo: '11°C ~ 22°C', pop: 25 };
+            } else if (targetCity === 'uluru') {
+                return { typeTitle: '🏜️ 烏魯魯 11月氣候預測', badgeClass: 'bg-amber-700', icon: '☀️', desc: '內陸紅土中心已進入初夏，白天天氣炎熱且強烈紫外線，請務必做好防曬！', tempInfo: '21°C ~ 34°C', pop: 10 };
+            } else {
+                return { typeTitle: '🌿 悉尼 11月氣候預測', badgeClass: 'bg-sky-600', icon: '🦘', desc: '雪梨正值春暖花開、氣候極為溫和舒適，非常適合漫步海港！', tempInfo: '16°C ~ 24°C', pop: 20 };
+            }
         });
 
         watch(selectedDay, () => { fetchAustraliaWeather(); });
@@ -586,7 +706,8 @@ createApp({
                     if (data.days_config) days.value = data.days_config;
                     if (data.hotel_list) hotelList.value = data.hotel_list;
                 }
-                isSynced.value = true; fetchAustraliaWeather();
+                isSynced.value = true;
+                fetchAustraliaWeather();
             } catch (err) { isSynced.value = false; }
         };
 
@@ -623,14 +744,18 @@ createApp({
                 modalType.value = 'event'; isEditMode.value = false;
                 modalData.value = { category: '景點', time: '', location: '', note: '', transTime: '20', transMode: 'transit' };
             } else if (currentTab.value === 'shopping') {
-                modalType.value = 'shopping'; modalData.value = { name: '' };
+                modalType.value = 'shopping'; modalData.value = { name: '', image: null };
             } else if (currentTab.value === 'wallet') {
                 modalType.value = 'wallet'; modalData.value = { category: '飲食', name: '', amount: null, date: days.value[selectedDay.value].dateStr };
             }
             showModal.value = true;
         };
 
-        const openModal = (type, dataObj) => { modalType.value = type; isEditMode.value = true; currentTargetEventId = dataObj.id; modalData.value = { ...dataObj }; showModal.value = true; };
+        const openModal = (type, dataObj) => {
+            modalType.value = type; isEditMode.value = true; currentTargetEventId = dataObj.id;
+            modalData.value = { ...dataObj }; showModal.value = true;
+        };
+
         const closeModal = () => { showModal.value = false; };
 
         const saveEvent = () => {
@@ -647,8 +772,9 @@ createApp({
         };
 
         const deleteEvent = () => { events.value = events.value.filter(e => e.id !== currentTargetEventId); updateCloud(); closeModal(); };
-        const saveShoppingItem = () => { if (!modalData.value.name) return; shoppingList.value.push({ id: Date.now(), name: modalData.value.name, checked: false }); updateCloud(); closeModal(); };
+        const saveShoppingItem = () => { if (!modalData.value.name) return; shoppingList.value.push({ id: Date.now(), name: modalData.value.name, image: modalData.value.image, checked: false }); updateCloud(); closeModal(); };
         const deleteShoppingItem = (id) => { shoppingList.value = shoppingList.value.filter(s => s.id !== id); updateCloud(); };
+        const handleImageUpload = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { modalData.value.image = event.target.result; }; reader.readAsDataURL(file); };
         const saveExpenseItem = () => { if (!modalData.value.name || !modalData.value.amount) return; expenses.value.push({ id: Date.now(), category: modalData.value.category, name: modalData.value.name, amount: modalData.value.amount, date: modalData.value.date }); updateCloud(); closeModal(); };
         const deleteExpenseItem = (id) => { expenses.value = expenses.value.filter(e => e.id !== id); updateCloud(); };
 
@@ -659,7 +785,7 @@ createApp({
             currentDayEvents, shoppingList, expenses, totalAUD, totalHKD, triggerGoogleMap, getCategoryClass, hotelList,
             showModal, isEditMode, modalType, modalData, modalTitle, triggerFAB, openModal, closeModal, isSynced,
             addNewDay, removeLastDay, openDateSettings, recalculateDates, editDayTitle, updateCloud, openAddHotelModal, openEditHotelModal, saveHotelItem, deleteHotelItem, copyText,
-            saveEvent, deleteEvent, saveShoppingItem, deleteShoppingItem, saveExpenseItem, deleteExpenseItem, fetchAustraliaWeather
+            saveEvent, deleteEvent, saveShoppingItem, deleteShoppingItem, handleImageUpload, saveExpenseItem, deleteExpenseItem, fetchAustraliaWeather
         };
     }
 }).mount('#app');
