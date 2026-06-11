@@ -695,50 +695,53 @@ createApp({
             try {
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 const { data } = await supabaseClient.from('trips').select('*').eq('room_id', FIXED_ROOM_ID).maybeSingle();
+                
                 if (data) {
+                    // 1. 處理天數設定：如果雲端天數大於或等於本地，才用雲端覆蓋；否則保留本地最新的 15 天設定
                     if (data.days_config && data.days_config.length >= days.value.length) {
                         days.value = data.days_config;
-                    }
-                    
-                    if (data.events) {
-                        events.value = data.events;
-                        defaultEvents.forEach(defEvt => {
-                            if (!events.value.some(e => e.id === defEvt.id)) {
-                                events.value.push(defEvt);
-                            }
-                        });
-                        events.value.sort((a, b) => a.time.localeCompare(b.time));
                     } else {
-                        events.value = [...defaultEvents];
-                    }
-                    
-                    if (data.shopping_list) shoppingList.value = data.shopping_list;
-                    if (data.expenses) expenses.value = data.expenses;
-                    
-                    if (data.hotel_list) {
-                        hotelList.value = data.hotel_list;
-                        defaultHotels.forEach(defHtl => {
-                            if (!hotelList.value.some(h => h.id === defHtl.id)) {
-                                hotelList.value.push(defHtl);
-                            }
-                        });
-                    } else {
-                        hotelList.value = [...defaultHotels];
+                        // 如果本地天數比較多（例如新增了 Day 15），以本地為主，並準備同步到雲端
+                        console.log("本地天數較新，保留本地配置");
                     }
 
-                    // 讀取雲端租車資料（若欄位尚未建立則為空陣列）
-                    if (data.car_list) {
-                        carList.value = data.car_list;
+                    // 2. 處理行程事件：避免直接覆蓋導致本地新加的 Day 14/15 行程消失
+                    if (data.events && data.events.length > 0) {
+                        // 合併策略：以雲端舊數據為主，但如果雲端完全沒有 dayIdx >= 13 (Day 14+) 的行程，則把本地預設的加進去
+                        const cloudEvents = data.events;
+                        const localNewEvents = events.value.filter(le => le.dayIdx >= 13);
+                        
+                        // 檢查雲端是否已經有 Day 14 或 Day 15 的行程
+                        const hasNewDaysInCloud = cloudEvents.some(e => e.dayIdx >= 13);
+                        
+                        if (!hasNewDaysInCloud) {
+                            // 如果雲端沒有新天數的行程，把本地 Day 14/15 的預設行程塞進去
+                            events.value = [...cloudEvents, ...localNewEvents];
+                        } else {
+                            // 如果雲端已經有更新過後的 Day 14/15 行程，則完全以雲端為主
+                            events.value = cloudEvents;
+                        }
                     } else {
-                        carList.value = [];
+                        // 如果雲端完全沒行程，用本地預設
+                        events.value = [...defaultEvents];
                     }
-                    
+
+                    if (data.shopping_list) shoppingList.value = data.shopping_list;
+                    if (data.expenses) expenses.value = data.expenses;
+                    if (data.hotel_list) hotelList.value = data.hotel_list;
+
+                    // 3. 確保天數與行程更新後，反向同步回雲端，刷新 Supabase 上的舊資料
                     await updateCloud();
                 } else {
+                    // 全新房間初始化
                     await updateCloud();
                 }
-                isSynced.value = true; fetchAustraliaWeather();
-            } catch (err) { console.error(err); isSynced.value = false; }
+                isSynced.value = true; 
+                fetchAustraliaWeather();
+            } catch (err) { 
+                console.error("同步失敗:", err);
+                isSynced.value = false; 
+            }
         };
 
         const updateCloud = async () => {
