@@ -11,36 +11,37 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <style>
+	<style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            /* 1. 全局大背景：改為您的 background.png，並設定滿版、置中、隨螢幕滾動固定 */
             background-image: url('background.png');
-            background-size: cover;
+            background-size: 100% 100%; 
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
             -webkit-tap-highlight-color: transparent;
         }
-        .bg-australia {
-            /* 2. 頂部 Banner 區塊背景：改為您的 banner.png */
-            background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.85), rgba(254, 243, 199, 0.95)), 
-                              url('banner.png');
-            background-size: cover;
-            background-position: center;
+        .bg-app-container {
+            background-color: transparent; 
+        }
+        .custom-banner {
+            background-image: url('banner.png') !important;
+            background-size: 100% 100% !important; 
+            background-position: center !important;
+            background-repeat: no-repeat !important;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-	
 </head>
 <body class="text-slate-700 antialiased">
 
-<div id="app" class="max-w-md mx-auto min-h-screen bg-australia flex flex-col shadow-2xl relative pb-24 overflow-x-hidden">
+<div id="app" class="max-w-md mx-auto min-h-screen bg-transparent flex flex-col shadow-2xl relative pb-24 overflow-x-hidden">
     
-    <header class="bg-amber-950 p-5 pt-6 pb-3 sticky top-0 z-40 border-b border-amber-900 shadow-md">
+    <!-- 頂部 Banner 區塊：已補回 custom-banner 背景類別，並移除右側國旗 Icon -->
+    <header class="custom-banner p-5 pt-6 pb-3 sticky top-0 z-40 border-b border-amber-900/20 shadow-md">
         <div class="flex justify-between items-center mb-2">
             <div>
                 <span class="text-[10px] tracking-widest text-amber-400 block mb-0.5">🐨 EXPLORE AUSTRALIA 🦘</span>
@@ -48,12 +49,9 @@
                     澳洲多城市。縱橫探索之旅
                 </h1>
             </div>
-            <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-200 shadow-md flex-shrink-0 bg-white flex items-center justify-center text-2xl">
-                🇦🇺
-            </div>
         </div>
 
-        <div class="flex items-center justify-between bg-amber-900/40 p-2 rounded-xl border border-amber-800 text-xs my-1">
+        <div class="flex items-center justify-between bg-amber-900/40 p-2 rounded-xl border border-amber-800/40 text-xs my-1 backdrop-blur-sm">
             <span class="text-amber-200 font-bold flex-shrink-0">🌐 雲端多機同步狀態：</span>
             <div class="flex items-center gap-1.5">
                 <span v-if="isSynced" class="text-emerald-400 font-bold animate-pulse">● 已自動連線</span>
@@ -64,7 +62,7 @@
         <!-- 行程日期動態管理導覽列 -->
         <div v-if="currentTab === 'itinerary'" class="mt-3">
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                <div class="flex gap-1 flex-shrink-0 bg-amber-900/60 p-1 rounded-xl border border-amber-800">
+                <div class="flex gap-1 flex-shrink-0 bg-amber-900/60 p-1 rounded-xl border border-amber-800/60 backdrop-blur-sm">
                     <button @click="openDateSettings" class="text-xs px-2 py-1 bg-amber-500 text-white font-bold rounded-lg shadow hover:bg-amber-600 transition">📅 設定首日</button>
                     <button @click="addNewDay" class="text-xs px-2.5 py-1 bg-emerald-600 text-white font-bold rounded-lg shadow hover:bg-emerald-700 transition">➕ 增天</button>
                     <button @click="removeLastDay" class="text-xs px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg shadow hover:bg-rose-700 transition">➖ 減天</button>
@@ -74,7 +72,7 @@
                     v-for="(day, index) in days" 
                     :key="index"
                     @click="selectedDay = index"
-                    :class="selectedDay === index ? 'bg-amber-100 text-amber-950 font-bold scale-105 shadow-md border-amber-200' : 'bg-amber-900/60 text-amber-200 border-amber-800/80'"
+                    :class="selectedDay === index ? 'bg-amber-100 text-amber-950 font-bold scale-105 shadow-md border-amber-200' : 'bg-amber-900/60 text-amber-200 border-amber-800/80 backdrop-blur-sm'"
                     class="flex-shrink-0 px-3.5 py-1.5 rounded-2xl text-center transition-all duration-300 min-w-[75px] border"
                 >
                     <span class="block text-sm font-bold tracking-wide uppercase">D{{ index + 1 }} ({{ day.weekShort }})</span>
@@ -108,7 +106,7 @@
                 </div>
             </div>
 
-            <div class="bg-amber-900/90 p-3 rounded-xl border border-amber-800 text-center shadow-sm flex justify-between items-center px-4">
+            <div class="bg-amber-900/90 p-3 rounded-xl border border-amber-800 text-center shadow-sm flex justify-between items-center px-4 backdrop-blur-sm">
                 <span class="text-xs text-amber-100 font-medium flex-1 text-center">✨ 今日主題：{{ days[selectedDay]?.title || '未設定主題' }} ✨</span>
                 <button @click="editDayTitle" class="text-[10px] text-amber-300 underline font-bold ml-2">編輯主題</button>
             </div>
@@ -164,7 +162,7 @@
             </div>
         </div>
 
-        <!-- 旅遊資訊分頁（含全新多城市住宿列表區塊） -->
+        <!-- 旅遊資訊分頁 -->
         <div v-if="currentTab === 'info'" class="space-y-4 animate-fade-in">
             <!-- 港幣與澳幣即時換算 -->
             <div class="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-2xl border border-amber-200 shadow-sm">
@@ -175,7 +173,7 @@
                 </div>
             </div>
 
-            <!-- 🔥 全新升級：多城市住宿明細整合管理區塊 -->
+            <!-- 多城市住宿明細整合管理區塊 -->
             <div class="bg-white/95 p-4 rounded-2xl border border-amber-200 shadow-sm space-y-3">
                 <div class="flex justify-between items-center border-b pb-2">
                     <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">🏨 多城市住宿明細清單</h3>
@@ -213,7 +211,6 @@
                         <p v-if="hotel.phone">📞 <strong>電話:</strong> {{ hotel.phone }}</p>
                     </div>
 
-                    <!-- 財務與付款標籤狀態 -->
                     <div class="flex justify-between items-center bg-slate-100 p-1.5 rounded-md mt-1">
                         <span class="text-[11px] font-bold" :class="hotel.payStatus === '已線上付清' ? 'text-emerald-600' : 'text-amber-700 bg-amber-100/60 px-1 rounded'">
                             💰 狀態: {{ hotel.payStatus }}
@@ -241,7 +238,7 @@
 
         <div v-if="currentTab === 'shopping'" class="space-y-3 animate-fade-in">
             <div v-if="shoppingList.length === 0" class="text-center text-xs text-slate-400 py-12">
-                🧺 購物清單空空如也，快點右下角「＋」加入澳洲伴手禮（如綿羊油、蜂蜜）！
+                🧺 購物清單空空如也，快點右下角「＋」加入澳洲伴手禮！
             </div>
             <div v-for="shop in shoppingList" :key="shop.id" class="bg-white/90 p-4 rounded-2xl border border-amber-50 shadow-sm flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -355,13 +352,13 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div class="col-span-2">
-                        <label class="block text-slate-500 font-bold mb-1">價格/記帳明細 (如: AUD 450 / 約 HKD 2300)</label>
+                        <label class="block text-slate-500 font-bold mb-1">價格/記帳明細</label>
                         <input type="text" v-model="modalData.price" placeholder="標明幣別以方便對帳" class="w-full p-2 bg-slate-50 border rounded-xl font-bold">
                     </div>
                 </div>
                 <div>
                     <label class="block text-slate-500 font-bold mb-1">重要入住重要備註項目</label>
-                    <textarea rows="2" v-model="modalData.note" placeholder="例：含早餐、可寄放行李、自助入住密碼" class="w-full p-2 bg-slate-50 border rounded-xl"></textarea>
+                    <textarea rows="2" v-model="modalData.note" placeholder="例：含早餐、可寄放行李" class="w-full p-2 bg-slate-50 border rounded-xl"></textarea>
                 </div>
                 <button @click="saveHotelItem" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">💾 儲存住宿設定</button>
             </div>
@@ -408,7 +405,7 @@
                     <input type="text" v-model="modalData.location" placeholder="例如：悉尼歌劇院 Sydney Opera House" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
                 </div>
 
-                <div v-if="modalData.category === '航班'" class="p-3 bg-amber-50 rounded-xl space-y-2 border border-amber-100">
+                <div class="p-3 bg-amber-50 rounded-xl space-y-2 border border-amber-100" v-if="modalData.category === '航班'">
                     <div class="grid grid-cols-3 gap-2">
                         <div><label class="text-[10px] text-slate-500">航班/內陸機</label><input type="text" v-model="modalData.flightNum" class="w-full p-1 bg-white border rounded text-xs"></div>
                         <div><label class="text-[10px] text-slate-500">起飛起點</label><input type="text" v-model="modalData.flightDep" class="w-full p-1 bg-white border rounded text-xs"></div>
@@ -484,8 +481,8 @@
 <script>
 const { createApp, ref, computed, onMounted, nextTick, watch } = Vue;
 
-const SUPABASE_URL = "https://nyqxxfcryaacfwsrfpeq.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cXh4ZmNyeWFhY2Z3c3JmcGVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNDM2NjYsImV4cCI6MjA5NjcxOTY2Nn0.YWzZ1SG2j6rjg6qIBLN6KkdQdSQE9aLvlMCxcHOUwvE";
+const SUPABASE_URL = "https://vumrenvgdbjeaiuvnuzx.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1bXJlbnZnZGJqZWFpdXZudXp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNTI4NDcsImV4cCI6MjA5NjYyODg0N30.Rn_WmoNaz1-PfHDznfJY0g_UU-kWs3UR4Wd5e2SchEo";
 const FIXED_ROOM_ID = "australia2026_family"; 
 
 createApp({
@@ -498,19 +495,17 @@ createApp({
         
         const isSynced = ref(false);
         let supabaseClient = null;
-        let cloudChannel = null;
 
         const weatherDatabase = ref({});
 
-        // 每日天數配置
         const days = ref([
             { weekShort:'Mon', dateNum:'11/02', title:'抵達悉尼與達令港散步', dateStr: '2026-11-02' },
             { weekShort:'Tue', dateNum:'11/03', title:'悉尼歌劇院與魚市場海鮮', dateStr: '2026-11-03' },
-            { weekShort:'Wed', dateNum:'11/04', title:'飛往墨爾本與普芬比利蒸汽火車', dateStr: '2026-11-04' },
-            { weekShort:'Thu', dateNum:'11/05', title:'大洋路 Great Ocean Road 一日遊', dateStr: '2026-11-05' },
-            { weekShort:'Fri', dateNum:'11/06', title:'墨爾本市區咖啡巷弄散策', dateStr: '2026-11-06' },
-            { weekShort:'Sat', dateNum:'11/07', title:'飛往布里斯班與龍柏考拉動物園', dateStr: '2026-11-07' },
-            { weekShort:'Sun', dateNum:'11/08', title:'黃金海岸衝浪者天堂與回港', dateStr: '2026-11-08' }
+            { weekShort:'Wed', dateNum:'11/04', title:'飛往烏魯魯與紅土荒漠探索', dateStr: '2026-11-04' },
+            { weekShort:'Thu', dateNum:'11/05', title:'烏魯魯日出與原野星光展', dateStr: '2026-11-05' },
+            { weekShort:'Fri', dateNum:'11/06', title:'飛往墨爾本與普芬比利蒸汽火車', dateStr: '2026-11-06' },
+            { weekShort:'Sat', dateNum:'11/07', title:'大洋路 Great Ocean Road 一日遊', dateStr: '2026-11-07' },
+            { weekShort:'Sun', dateNum:'11/08', title:'墨爾本市區咖啡巷弄散策與回港', dateStr: '2026-11-08' }
         ]);
 
         const tabs = [
@@ -523,16 +518,16 @@ createApp({
             { id: 2, dayIdx: 0, category: '住宿', location: 'The Fullerton Hotel Sydney', time: '21:30', note: '辦理酒店 Check-in 入住手續', transTime: '10', transMode: 'walk' },
             { id: 3, dayIdx: 1, category: '美食', location: '悉尼魚市場 Sydney Fish Market', time: '09:00', note: '享用生蠔、大龍蝦與現切海鮮當早餐', transTime: '20', transMode: 'transit' },
             { id: 4, dayIdx: 1, category: '景點', location: '悉尼歌劇院 & 皇家植物園', time: '13:30', note: '徒步參觀歌劇院外部，拍攝經典全景照。', transTime: '15', transMode: 'walk' },
-            { id: 5, dayIdx: 2, category: '航班', location: '墨爾本機場 (MEL)', time: '08:35', flightNum: 'VA212', flightDep: 'SYD', flightArr: 'MEL', flightArrTime: '10:10', flightDuration: '1h 35m', note: '搭乘國內線飛往墨爾本文化之都。', transTime: '40', transMode: 'transit' },
-            { id: 6, dayIdx: 3, category: '景點', location: '大洋路十二門徒石 Great Ocean Road', time: '08:00', openTime: '24小時', note: '極致震撼的海岸自駕/一日遊行程！', transTime: '180', transMode: 'drive' },
-            { id: 7, dayIdx: 4, category: '美食', location: '墨爾本 Degraves St 咖啡街', time: '09:30', note: '品嚐道地澳式白咖啡 Flat White 與早午餐', transTime: '10', transMode: 'walk' },
-            { id: 8, dayIdx: 5, category: '景點', location: '龍柏考拉保護區 Lone Pine Koala Sanctuary (布里斯班)', time: '11:00', ticketPrice: 'AUD 49', note: '親眼看看可愛考拉、親手餵食袋鼠🦘', transTime: '30', transMode: 'drive' }
+            { id: 5, dayIdx: 2, category: '航班', location: '艾爾斯岩機場 (AYQ)', time: '09:30', flightNum: 'JQ660', flightDep: 'SYD', flightArr: 'AYQ', flightArrTime: '12:30', flightDuration: '3h 00m', note: '搭乘國內線飛往澳洲紅土中心烏魯魯。', transTime: '15', transMode: 'transit' },
+            { id: 6, dayIdx: 3, category: '景點', location: '烏魯魯卡塔丘塔國家公園 Uluru', time: '05:30', openTime: '24小時', note: '震撼人心的烏魯魯絕美日出觀賞。', transTime: '20', transMode: 'drive' },
+            { id: 7, dayIdx: 4, category: '航班', location: '墨爾本機場 (MEL)', time: '13:15', flightNum: 'VA408', flightDep: 'AYQ', flightArr: 'MEL', flightArrTime: '17:45', flightDuration: '3h 00m', note: '從小沙漠飛往文化之都墨爾本。', transTime: '40', transMode: 'transit' },
+            { id: 8, dayIdx: 5, category: '景點', location: '大洋路十二門徒石 Great Ocean Road', time: '08:00', openTime: '24小時', note: '極致震撼的海岸自駕/一日遊行程！', transTime: '180', transMode: 'drive' }
         ];
 
-        // 住宿預設基礎數據
         const defaultHotels = [
-            { id: 1, city: "悉尼", name: "The Fullerton Hotel Sydney", checkIn: "2026-11-02", checkOut: "2026-11-04", roomType: "豪華大床房 (禁菸)", bookingRef: "FT-983120X", address: "1 Martin Pl, Sydney NSW 2000", phone: "+61 2 8223 1111", payStatus: "已線上付清", price: "AUD 580", note: "馬丁廣場旁邊，地段極佳。前台可提供提前行李寄放。" },
-            { id: 2, city: "墨爾本", name: "The Langham Melbourne", checkIn: "2026-11-04", checkOut: "2026-11-07", roomType: "河景雙床房", bookingRef: "LG-776412", address: "1 Southgate Ave, Southbank VIC 3006", phone: "+61 3 8696 8888", payStatus: "到店付款 (現場刷卡/現金)", price: "AUD 920", note: "亞拉河畔旁，含三天份雙人早餐。" }
+            { id: 1, city: "悉尼", name: "The Fullerton Hotel Sydney", checkIn: "2026-11-02", checkOut: "2026-11-04", roomType: "豪華大床房 (禁菸)", bookingRef: "FT-983120X", address: "1 Martin Pl, Sydney NSW 2000", phone: "+61 2 8223 1111", payStatus: "已線上付清", price: "AUD 580", note: "馬丁廣場旁邊，地段極佳。" },
+            { id: 2, city: "烏魯魯", name: "Sails in the Desert", checkIn: "2026-11-04", checkOut: "2026-11-06", roomType: "高級雙床房", bookingRef: "UL-554211", address: "Yulara Drive, Yulara NT 0872", phone: "+61 2 8296 8010", payStatus: "已線上付清", price: "AUD 740", note: "艾爾斯岩度假村內最頂級的沙漠風帆酒店。" },
+            { id: 3, city: "墨爾本", name: "The Langham Melbourne", checkIn: "2026-11-06", checkOut: "2026-11-08", roomType: "河景雙床房", bookingRef: "LG-776412", address: "1 Southgate Ave, Southbank VIC 3006", phone: "+61 3 8696 8888", payStatus: "到店付款 (現場刷卡/現金)", price: "AUD 610", note: "亞拉河畔旁，含雙人早餐。" }
         ];
 
         const events = ref([...defaultEvents]);
@@ -551,20 +546,15 @@ createApp({
             return isEditMode.value ? '📝 編輯行程項目' : '✨ 新增行程項目';
         });
 
-        // 住宿彈窗與管理邏輯
         const openAddHotelModal = () => {
-            modalType.value = 'hotel';
-            isEditMode.value = false;
+            modalType.value = 'hotel'; isEditMode.value = false;
             modalData.value = { city: '', name: '', checkIn: '', checkOut: '', roomType: '', bookingRef: '', address: '', phone: '', payStatus: '已線上付清', price: '', note: '' };
             showModal.value = true;
         };
 
         const openEditHotelModal = (hotelObj) => {
-            modalType.value = 'hotel';
-            isEditMode.value = true;
-            currentTargetEventId = hotelObj.id;
-            modalData.value = { ...hotelObj };
-            showModal.value = true;
+            modalType.value = 'hotel'; isEditMode.value = true; currentTargetEventId = hotelObj.id;
+            modalData.value = { ...hotelObj }; showModal.value = true;
         };
 
         const saveHotelItem = () => {
@@ -581,18 +571,14 @@ createApp({
 
         const deleteHotelItem = (id) => {
             if (confirm("確定要刪除這筆住宿明細資料嗎？")) {
-                hotelList.value = hotelList.value.filter(h => h.id !== id);
-                updateCloud();
+                hotelList.value = hotelList.value.filter(h => h.id !== id); updateCloud();
             }
         };
 
-        // 一鍵複製文字
         const copyText = (text) => {
-            navigator.clipboard.writeText(text);
-            alert("📋 地址已成功複製至剪貼簿！");
+            navigator.clipboard.writeText(text); alert("📋 地址已成功複製至剪貼簿！");
         };
 
-        // ➕ 動態增加旅程天數
         const addNewDay = () => {
             const currentLength = days.value.length;
             const lastDayDate = new Date(days.value[currentLength - 1].dateStr);
@@ -609,11 +595,9 @@ createApp({
 
             days.value.push({ weekShort, dateNum, title: '全新規劃的一天', dateStr });
             selectedDay.value = currentLength; 
-            updateCloud();
-            fetchAustraliaWeather();
+            updateCloud(); fetchAustraliaWeather();
         };
 
-        // ➖ 動態減少最後一天
         const removeLastDay = () => {
             if (days.value.length <= 1) { alert("旅程至少需要保留 1 天喔！"); return; }
             if (confirm(`確定要刪除最後一天 (Day ${days.value.length}) 嗎？`)) {
@@ -639,7 +623,6 @@ createApp({
             updateCloud(); fetchAustraliaWeather();
         };
 
-        // 🌤️ 智慧澳洲天氣模組
         const fetchAustraliaWeather = async () => {
             try {
                 let lat = -33.8688; let lon = 151.2093; 
@@ -647,10 +630,11 @@ createApp({
                 if (!currentDayObj) return;
 
                 const dayText = ((currentDayObj.title || '') + JSON.stringify(events.value)).toLowerCase();
+                
                 if (dayText.includes('墨爾本') || dayText.includes('melbourne') || dayText.includes('大洋路')) {
                     lat = -37.8136; lon = 144.9631; 
-                } else if (dayText.includes('布里斯班') || dayText.includes('brisbane') || dayText.includes('黃金海岸')) {
-                    lat = -27.4705; lon = 153.0260; 
+                } else if (dayText.includes('烏魯魯') || dayText.includes('uluru') || dayText.includes('艾爾斯岩')) {
+                    lat = -25.3444; lon = 131.0369; 
                 }
 
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Australia%2FSydney`);
@@ -671,17 +655,28 @@ createApp({
                     });
                     weatherDatabase.value = db;
                 }
-            } catch (err) { console.error("天氣讀取失敗", err); }
+            } catch (err) { console.error("天氣同步失敗", err); }
         };
 
         const activeWeather = computed(() => {
             const targetDayObj = days.value[selectedDay.value];
             if (!targetDayObj) return { typeTitle: '⏳ 載入中', badgeClass: 'bg-slate-400', icon: '⏳', desc: '準備中...', tempInfo: '--°C', pop: null };
+            
             if (weatherDatabase.value && weatherDatabase.value[targetDayObj.dateStr]) return weatherDatabase.value[targetDayObj.dateStr];
             
+            const dayText = ((targetDayObj.title || '') + JSON.stringify(events.value)).toLowerCase();
             const month = parseInt(targetDayObj.dateStr.split('-')[1]);
-            return (month >= 9 && month <= 11) ? { typeTitle: '🌿 澳洲春夏季預測', badgeClass: 'bg-emerald-600', icon: '🦘', desc: '澳洲正值春暖花開、氣候極為舒適宜人！', tempInfo: '16°C ~ 25°C', pop: 20 }
-                   : { typeTitle: '🍂 澳洲秋冬季預測', badgeClass: 'bg-indigo-500', icon: '🍁', desc: '南半球秋季溫差偏大，自駕請攜帶外套。', tempInfo: '9°C ~ 18°C', pop: 30 };
+            
+            if (month >= 9 && month <= 11) {
+                if (dayText.includes('墨爾本') || dayText.includes('melbourne') || dayText.includes('大洋路')) {
+                    return { typeTitle: '🌿 墨爾本 11月氣候預測', badgeClass: 'bg-emerald-600', icon: '🎨', desc: '墨爾本春末溫差大，一日四季，建議攜帶輕便外套隨時洋蔥式穿搭。', tempInfo: '11°C ~ 22°C', pop: 25 };
+                } else if (dayText.includes('烏魯魯') || dayText.includes('uluru') || dayText.includes('艾爾斯岩')) {
+                    return { typeTitle: '🏜️ 烏魯魯 11月氣候預測', badgeClass: 'bg-amber-700', icon: '☀️', desc: '內陸紅土中心已進入初夏，白天天氣炎熱且強烈紫外線，請務必做好防曬、戴帽子並大量補充水分！', tempInfo: '21°C ~ 34°C', pop: 10 };
+                }
+                return { typeTitle: '🌿 雪梨 11月氣候預測', badgeClass: 'bg-sky-600', icon: '🦘', desc: '雪梨正值春暖花開、氣候極為溫和舒適，非常適合漫步海港！', tempInfo: '16°C ~ 24°C', pop: 20 };
+            }
+            
+            return { typeTitle: '🍂 澳洲秋冬季預測', badgeClass: 'bg-indigo-500', icon: '🍁', desc: '南半球秋冬溫差偏大，旅行請務必攜帶保暖長袖外套。', tempInfo: '9°C ~ 18°C', pop: 30 };
         });
 
         watch(selectedDay, () => { fetchAustraliaWeather(); });
