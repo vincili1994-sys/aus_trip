@@ -40,7 +40,7 @@
 
 <div id="app" class="max-w-md mx-auto min-h-screen bg-transparent flex flex-col shadow-2xl relative pb-24 overflow-x-hidden">
     
-    <!-- 頂部 Banner 區塊：已補回 custom-banner 背景類別，並移除右側國旗 Icon -->
+    <!-- 頂部 Banner 區塊 -->
     <header class="custom-banner p-5 pt-6 pb-3 sticky top-0 z-40 border-b border-amber-900/20 shadow-md">
         <div class="flex justify-between items-center mb-2">
             <div>
@@ -85,7 +85,7 @@
     <main class="flex-1 p-4">
 
         <div v-if="currentTab === 'itinerary'" class="space-y-4 animate-fade-in">
-            <!-- 動態天氣組件 -->
+            <!-- 動態天氣組件（已修正精準定位邏輯） -->
             <div class="bg-white/85 backdrop-blur-md rounded-2xl p-4 border border-amber-100 shadow-sm flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <span class="text-3xl">{{ activeWeather.icon }}</span>
@@ -373,13 +373,20 @@
                 <button @click="closeModal" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">套用並關閉</button>
             </div>
 
-            <!-- 編輯單日主題 -->
+            <!-- 編輯單日主題與對應天氣城市 -->
             <div v-if="modalType === 'dayTitleEdit'" class="space-y-3 text-sm">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">編輯 Day {{ selectedDay + 1 }} 的今日主題</label>
-                    <input type="text" v-model="days[selectedDay].title" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                    <input type="text" v-model="days[selectedDay].title" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold mb-3">
+                    
+                    <label class="block text-xs font-bold text-slate-500 mb-1">🎯 當天定位城市 (影響天氣預報抓取地點)</label>
+                    <select v-model="days[selectedDay].city" class="w-full p-2.5 bg-slate-50 border rounded-xl font-bold">
+                        <option value="sydney">雪梨 / 悉尼 (Sydney)</option>
+                        <option value="uluru">烏魯魯 (Uluru / Ayers Rock)</option>
+                        <option value="melbourne">墨爾本 (Melbourne)</option>
+                    </select>
                 </div>
-                <button @click="updateCloud(); closeModal();" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">儲存主題</button>
+                <button @click="updateCloud(); fetchAustraliaWeather(); closeModal();" class="w-full bg-amber-950 text-amber-100 py-3 rounded-xl font-bold shadow-md">儲存設定</button>
             </div>
 
             <!-- 行程項目模式 -->
@@ -498,14 +505,15 @@ createApp({
 
         const weatherDatabase = ref({});
 
+        // 為每一天預設直接配置精準的 city 屬性，點擊切換時天氣直接精準鎖定
         const days = ref([
-            { weekShort:'Mon', dateNum:'11/02', title:'抵達悉尼與達令港散步', dateStr: '2026-11-02' },
-            { weekShort:'Tue', dateNum:'11/03', title:'悉尼歌劇院與魚市場海鮮', dateStr: '2026-11-03' },
-            { weekShort:'Wed', dateNum:'11/04', title:'飛往烏魯魯與紅土荒漠探索', dateStr: '2026-11-04' },
-            { weekShort:'Thu', dateNum:'11/05', title:'烏魯魯日出與原野星光展', dateStr: '2026-11-05' },
-            { weekShort:'Fri', dateNum:'11/06', title:'飛往墨爾本與普芬比利蒸汽火車', dateStr: '2026-11-06' },
-            { weekShort:'Sat', dateNum:'11/07', title:'大洋路 Great Ocean Road 一日遊', dateStr: '2026-11-07' },
-            { weekShort:'Sun', dateNum:'11/08', title:'墨爾本市區咖啡巷弄散策與回港', dateStr: '2026-11-08' }
+            { weekShort:'Mon', dateNum:'11/02', title:'抵達悉尼與達令港散步', dateStr: '2026-11-02', city: 'sydney' },
+            { weekShort:'Tue', dateNum:'11/03', title:'悉尼歌劇院與魚市場海鮮', dateStr: '2026-11-03', city: 'sydney' },
+            { weekShort:'Wed', dateNum:'11/04', title:'飛往烏魯魯與紅土荒漠探索', dateStr: '2026-11-04', city: 'uluru' },
+            { weekShort:'Thu', dateNum:'11/05', title:'烏魯魯日出與原野星光展', dateStr: '2026-11-05', city: 'uluru' },
+            { weekShort:'Fri', dateNum:'11/06', title:'飛往墨爾本與普芬比利蒸汽火車', dateStr: '2026-11-06', city: 'melbourne' },
+            { weekShort:'Sat', dateNum:'11/07', title:'大洋路 Great Ocean Road 一日遊', dateStr: '2026-11-07', city: 'melbourne' },
+            { weekShort:'Sun', dateNum:'11/08', title:'墨爾本市區咖啡巷弄散策與回港', dateStr: '2026-11-08', city: 'melbourne' }
         ]);
 
         const tabs = [
@@ -540,7 +548,7 @@ createApp({
         const modalTitle = computed(() => {
             if (modalType.value === 'hotel') return isEditMode.value ? '📝 編輯下榻住宿資訊' : '🏨 新增多城市住宿地點';
             if (modalType.value === 'dateSettings') return '📅 整體出發首日設定';
-            if (modalType.value === 'dayTitleEdit') return '📝 編輯單日主題摘要';
+            if (modalType.value === 'dayTitleEdit') return '📝 編輯單日主題摘要與天氣定位';
             if (modalType.value === 'shopping') return '🧺 新增澳洲採購目標';
             if (modalType.value === 'wallet') return '💰 新增消費記帳 (AUD)';
             return isEditMode.value ? '📝 編輯行程項目' : '✨ 新增行程項目';
@@ -593,7 +601,10 @@ createApp({
             const weekShort = weeks[lastDayDate.getDay()];
             const dateNum = `${month}/${date}`;
 
-            days.value.push({ weekShort, dateNum, title: '全新規劃的一天', dateStr });
+            // 新增天數預設為與最後一天相同的城市，後續可自行切換
+            const lastCity = days.value[currentLength - 1].city || 'sydney';
+
+            days.value.push({ weekShort, dateNum, title: '全新規劃的一天', dateStr, city: lastCity });
             selectedDay.value = currentLength; 
             updateCloud(); fetchAustraliaWeather();
         };
@@ -623,17 +634,18 @@ createApp({
             updateCloud(); fetchAustraliaWeather();
         };
 
+        // 核心修正：完全依據 days 結構內指定的 city 精準抓取天氣
         const fetchAustraliaWeather = async () => {
             try {
-                let lat = -33.8688; let lon = 151.2093; 
                 const currentDayObj = days.value[selectedDay.value];
                 if (!currentDayObj) return;
 
-                const dayText = ((currentDayObj.title || '') + JSON.stringify(events.value)).toLowerCase();
+                let lat = -33.8688; let lon = 151.2093; // 預設雪梨
+                const targetCity = currentDayObj.city || 'sydney';
                 
-                if (dayText.includes('墨爾本') || dayText.includes('melbourne') || dayText.includes('大洋路')) {
+                if (targetCity === 'melbourne') {
                     lat = -37.8136; lon = 144.9631; 
-                } else if (dayText.includes('烏魯魯') || dayText.includes('uluru') || dayText.includes('艾爾斯岩')) {
+                } else if (targetCity === 'uluru') {
                     lat = -25.3444; lon = 131.0369; 
                 }
 
@@ -645,10 +657,10 @@ createApp({
                     data.daily.time.forEach((dateStr, index) => {
                         const code = data.daily.weather_code[index];
                         db[dateStr] = {
-                            typeTitle: '📅 澳洲即時預報',
+                            typeTitle: targetCity === 'sydney' ? '🌿 悉尼即時預報' : targetCity === 'uluru' ? '🏜️ 烏魯魯即時預報' : '🎨 墨爾本即時預報',
                             badgeClass: code === 0 ? "bg-orange-500" : code <= 3 ? "bg-sky-500" : "bg-rose-500",
                             icon: code === 0 ? "☀️" : code <= 3 ? "🌤️" : "🌧️",
-                            desc: `澳洲當地預計${code === 0 ? '晴朗' : code <= 3 ? '多雲時晴' : '局部有雨'}，祝探索順利！`,
+                            desc: `當地預計${code === 0 ? '晴朗' : code <= 3 ? '多雲時晴' : '局部有雨'}，祝探索順利！`,
                             tempInfo: `${Math.round(data.daily.temperature_2m_min[index])}°C ~ ${Math.round(data.daily.temperature_2m_max[index])}°C`,
                             pop: data.daily.precipitation_probability_max[index]
                         };
@@ -658,25 +670,22 @@ createApp({
             } catch (err) { console.error("天氣同步失敗", err); }
         };
 
+        // 後備降級顯示機制：若 Open-Meteo 沒有回傳歷史範圍，則顯示該城市 11 月的最佳旅遊提醒
         const activeWeather = computed(() => {
             const targetDayObj = days.value[selectedDay.value];
             if (!targetDayObj) return { typeTitle: '⏳ 載入中', badgeClass: 'bg-slate-400', icon: '⏳', desc: '準備中...', tempInfo: '--°C', pop: null };
             
             if (weatherDatabase.value && weatherDatabase.value[targetDayObj.dateStr]) return weatherDatabase.value[targetDayObj.dateStr];
             
-            const dayText = ((targetDayObj.title || '') + JSON.stringify(events.value)).toLowerCase();
-            const month = parseInt(targetDayObj.dateStr.split('-')[1]);
+            const targetCity = targetDayObj.city || 'sydney';
             
-            if (month >= 9 && month <= 11) {
-                if (dayText.includes('墨爾本') || dayText.includes('melbourne') || dayText.includes('大洋路')) {
-                    return { typeTitle: '🌿 墨爾本 11月氣候預測', badgeClass: 'bg-emerald-600', icon: '🎨', desc: '墨爾本春末溫差大，一日四季，建議攜帶輕便外套隨時洋蔥式穿搭。', tempInfo: '11°C ~ 22°C', pop: 25 };
-                } else if (dayText.includes('烏魯魯') || dayText.includes('uluru') || dayText.includes('艾爾斯岩')) {
-                    return { typeTitle: '🏜️ 烏魯魯 11月氣候預測', badgeClass: 'bg-amber-700', icon: '☀️', desc: '內陸紅土中心已進入初夏，白天天氣炎熱且強烈紫外線，請務必做好防曬、戴帽子並大量補充水分！', tempInfo: '21°C ~ 34°C', pop: 10 };
-                }
-                return { typeTitle: '🌿 雪梨 11月氣候預測', badgeClass: 'bg-sky-600', icon: '🦘', desc: '雪梨正值春暖花開、氣候極為溫和舒適，非常適合漫步海港！', tempInfo: '16°C ~ 24°C', pop: 20 };
+            if (targetCity === 'melbourne') {
+                return { typeTitle: '🌿 墨爾本 11月氣候預測', badgeClass: 'bg-emerald-600', icon: '🎨', desc: '墨爾本春末溫差大，一日四季，建議攜帶輕便外套隨時洋蔥式穿搭。', tempInfo: '11°C ~ 22°C', pop: 25 };
+            } else if (targetCity === 'uluru') {
+                return { typeTitle: '🏜️ 烏魯魯 11月氣候預測', badgeClass: 'bg-amber-700', icon: '☀️', desc: '內陸紅土中心已進入初夏，白天天氣炎熱且強烈紫外線，請務必做好防曬！', tempInfo: '21°C ~ 34°C', pop: 10 };
+            } else {
+                return { typeTitle: '🌿 悉尼 11月氣候預測', badgeClass: 'bg-sky-600', icon: '🦘', desc: '雪梨正值春暖花開、氣候極為溫和舒適，非常適合漫步海港！', tempInfo: '16°C ~ 24°C', pop: 20 };
             }
-            
-            return { typeTitle: '🍂 澳洲秋冬季預測', badgeClass: 'bg-indigo-500', icon: '🍁', desc: '南半球秋冬溫差偏大，旅行請務必攜帶保暖長袖外套。', tempInfo: '9°C ~ 18°C', pop: 30 };
         });
 
         watch(selectedDay, () => { fetchAustraliaWeather(); });
@@ -693,6 +702,7 @@ createApp({
                     if (data.hotel_list) hotelList.value = data.hotel_list;
                 }
                 isSynced.value = true;
+                fetchAustraliaWeather(); // 資料同步後刷新天氣
             } catch (err) { isSynced.value = false; }
         };
 
@@ -770,7 +780,7 @@ createApp({
             currentDayEvents, shoppingList, expenses, totalAUD, totalHKD, triggerGoogleMap, getCategoryClass, hotelList,
             showModal, isEditMode, modalType, modalData, modalTitle, triggerFAB, openModal, closeModal, isSynced,
             addNewDay, removeLastDay, openDateSettings, recalculateDates, editDayTitle, updateCloud, openAddHotelModal, openEditHotelModal, saveHotelItem, deleteHotelItem, copyText,
-            saveEvent, deleteEvent, saveShoppingItem, deleteShoppingItem, handleImageUpload, saveExpenseItem, deleteExpenseItem
+            saveEvent, deleteEvent, saveShoppingItem, deleteShoppingItem, handleImageUpload, saveExpenseItem, deleteExpenseItem, fetchAustraliaWeather
         };
     }
 }).mount('#app');
