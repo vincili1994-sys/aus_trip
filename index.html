@@ -789,6 +789,7 @@ createApp({
 
         const deleteEvent = () => { events.value = events.value.filter(e => e.id !== currentTargetEventId); updateCloud(); closeModal(); };
         const saveShoppingItem = () => { if (!modalData.value.name) return; shoppingList.value.push({ id: Date.now(), name: modalData.value.name, checked: false }); updateCloud(); closeModal(); };
+        const toggleShoppingItem = (id) => { shoppingList.value = shoppingList.value.map(s => s.id === id ? { ...s, checked: !s.checked } : s); updateCloud(); };
         const deleteShoppingItem = (id) => { shoppingList.value = shoppingList.value.filter(s => s.id !== id); updateCloud(); };
         const saveExpenseItem = () => { if (!modalData.value.name || !modalData.value.amount) return; expenses.value.push({ id: Date.now(), category: modalData.value.category, name: modalData.value.name, amount: modalData.value.amount, date: modalData.value.date }); updateCloud(); closeModal(); };
         const deleteExpenseItem = (id) => { expenses.value = expenses.value.filter(e => e.id !== id); updateCloud(); };
@@ -814,7 +815,7 @@ createApp({
             addNewDay, removeLastDay, openDateSettings, recalculateDates, editDayTitle, updateCloud, 
             openAddHotelModal, openEditHotelModal, saveHotelItem, deleteHotelItem, copyText,
             openAddCarModal, openEditCarModal, saveCarItem, deleteCarItem,
-            saveEvent, deleteEvent, saveShoppingItem, deleteShoppingItem, saveExpenseItem, deleteExpenseItem, fetchAustraliaWeather
+            saveEvent, deleteEvent, saveShoppingItem, toggleShoppingItem, deleteShoppingItem, saveExpenseItem, deleteExpenseItem, fetchAustraliaWeather
         };
     }
 }).mount('#app');
